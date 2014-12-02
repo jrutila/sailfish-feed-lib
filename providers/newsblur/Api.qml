@@ -194,7 +194,11 @@ QtObject {
                              "id": feed.id,
                              "title": feed.feed_title,
                              "category": category ? category : qsTr("Uncategorized"),
-                                                    "imgUrl": feed.favicon_url,
+                             "imgUrl": feed.favicon_url,
+                             "unreadCount": feed.ng + feed.nt + feed.ps,
+                                                    "positive": feed.ps,
+                                                    "neutral": feed.nt,
+                                                    "negative": feed.ng,
                          });
                 tmpSubscriptions.push(model);
             }
@@ -218,13 +222,8 @@ QtObject {
             tmpSubscriptions.sort(function (a, b) {
                 if (a.category > b.category) return 1;
                 if (a.category < b.category) return -1;
-                return 0;
-            });
-
-            // Sort subscriptions by category
-            tmpSubscriptions.sort(function (a, b) {
-                if (a.category > b.category) return 1;
-                if (a.category < b.category) return -1;
+                if (a.positive > b.positive) return 1;
+                if (a.positive < b.positive) return -1;
                 return 0;
             });
             if (tmpSubscriptions.length) {

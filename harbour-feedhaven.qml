@@ -9,6 +9,7 @@
 import QtQuick 2.0
 import Sailfish.Silica 1.0
 import "components"
+import "providers/newsblur/" as Api
 
 ApplicationWindow {
     id: main
@@ -16,7 +17,7 @@ ApplicationWindow {
     initialPage: Qt.resolvedUrl("pages/FeedsListPage.qml")
     cover: Qt.resolvedUrl("cover/DefaultCover.qml")
 
-    Feedly {
+    Api.Api {
         id: feedly
     }
 

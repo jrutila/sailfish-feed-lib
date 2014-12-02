@@ -40,6 +40,7 @@ Page {
             if (authInfo.authCode !== "") feedly.getAccessToken(authInfo.authCode);
             else if (authInfo.error) errorPlaceholder.enabled = true;
         }
+
     }
 
     Connections {

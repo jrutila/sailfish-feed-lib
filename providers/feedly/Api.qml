@@ -8,7 +8,7 @@
 
 import QtQuick 2.0
 import Sailfish.Silica 1.0
-import "../lib/feedly.js" as FeedlyAPI
+import "../lib/api.js" as FeedlyAPI
 import "../lib/dbmanager.js" as DB
 
 QtObject {
@@ -629,6 +629,8 @@ QtObject {
         feedsListModel = Qt.createQmlObject('import QtQuick 2.0; ListModel { }', feedly);
         articlesListModel = Qt.createQmlObject('import QtQuick 2.0; ListModel { }', feedly);
         DB.getAuthTokens(feedly);
+        // TODO: For testing purposes
+        signedIn = true;
         if (refreshToken) {
             var tmpDate = new Date();
             tmpDate.setHours(tmpDate.getHours() + 1);

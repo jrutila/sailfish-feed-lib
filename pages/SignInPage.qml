@@ -13,6 +13,7 @@ Page {
     id: page
 
     readonly property string pageType: "signIn"
+    property string error
 
     allowedOrientations: Orientation.Portrait | Orientation.Landscape
 
@@ -31,14 +32,17 @@ Page {
             id: errorPlaceholder
 
             enabled: false
-            text: qsTr("Authentication error")
+            text: qsTr("Authentication error ") + error
         }
 
         onUrlChanged: {
             var authInfo = feedly.getAuthCodeFromUrl(url.toString());
 
             if (authInfo.authCode !== "") feedly.getAccessToken(authInfo.authCode);
-            else if (authInfo.error) errorPlaceholder.enabled = true;
+            else if (authInfo.error) {
+                error = authInfo.error;
+                errorPlaceholder.enabled = true;
+            }
         }
 
     }

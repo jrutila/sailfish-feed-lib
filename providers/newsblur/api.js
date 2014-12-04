@@ -1,15 +1,17 @@
 .pragma library
 
+// Newsblur api
+
 Qt.include("../../lib/api.js")
 
-var _redirectUri = "urn:ietf:wg:oauth:2.0:oob";
+var _redirectUri = "https://feedhaven.com";
 var _apiCalls = {
-    "auth": { "method": "GET", "protocol": "https", "url": "auth/auth?response_type=code&scope=https://cloud.feedly.com/subscriptions&redirect_uri=" + _redirectUri + "&client_id=" },
-    "authRefreshToken": { "method": "POST", "protocol": "https", "url":  "auth/token" },
+    "auth": { "method": "GET", "protocol": "https", "url": "account/authorize/" },
+    "authRefreshToken": { "method": "POST", "protocol": "https", "url":  "account/token/" },
     "subscriptions": { "method": "GET", "protocol": "http", "url": "reader/feeds" },
-    "markers": { "method": "POST", "protocol": "http", "url": "markers" },
+    "markers": { "method": "POST", "protocol": "http", "url": "reader/mark_story_hashes_as_read" },
     "markersCounts": { "method": "GET", "protocol": "http", "url": "markers/counts" },
-    "streamContent": { "method": "GET", "protocol": "http", "url": "streams/contents" },
+    "streamContent": { "method": "GET", "protocol": "http", "url": "reader/feed/:streamId" },
     "entries": { "method": "GET", "protocol": "http", "url": "entries" },
     "searchFeed": { "method": "GET", "protocol": "http", "url": "search/feeds" },
     "updateSubscription": { "method": "POST", "protocol": "https", "url": "subscriptions"},
@@ -19,5 +21,5 @@ var _apiCalls = {
 
 var _apiCallBack = function(useTest) {
     if (useTest) return "dev.newsblur.com/";
-    return "newsblur.com";
+    return "www.newsblur.com/";
 }

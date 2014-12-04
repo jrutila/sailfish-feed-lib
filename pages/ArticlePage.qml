@@ -180,6 +180,16 @@ Page {
             }
         }
 
+        PushUpMenu {
+            MenuItem {
+                text: qsTr("Next article")
+                onClicked: {
+                    feedly.currentEntry = articlesListView.model.get(index);
+                    pageStack.replace(Qt.resolvedUrl("ArticlePage.qml"));
+                }
+            }
+        }
+
         VerticalScrollDecorator { flickable: articleView }
     }
 

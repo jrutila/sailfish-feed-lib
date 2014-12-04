@@ -29,6 +29,7 @@ QtObject {
     property QtObject articlesListModel: null
     property Item _statusIndicator: null
     property Item _errorIndicator: null
+    property int page: 1
 
     signal error(string message)
     signal searchFeedCompleted(var results)
@@ -39,7 +40,9 @@ QtObject {
      * Return URL to sign in into Feedly
      */
     function getSignInUrl() {
-        return (FeedlyAPI._apiCalls["auth"].protocol + "://" + FeedlyAPI._apiCallBaseUrl + FeedlyAPI._apiCalls["auth"].url + feedlyClientId);
+        var url = FeedlyAPI.getUrl("auth", { 'response_type': 'code', 'client_id': feedlyClientId, 'redirect_uri': FeedlyAPI._redirectUri })
+        console.log(url);
+        return url;
     }
 
     /*
@@ -49,9 +52,15 @@ QtObject {
         var retObj = { "authCode": "", "error": false };
 
         if ((url !== getSignInUrl()) && (url.indexOf(FeedlyAPI._redirectUri) >= 0)) {
-            var startPos = url.indexOf("code=") + 5;
+            var startPos = url.indexOf("?");
             if (startPos >= 0) {
-                retObj.authCode = url.substring(startPos, url.indexOf("&state=", startPos));
+                var param = url.substring(startPos+1).split('&');
+                for (var p in param)
+                {
+                    var key = param[p].split("=")[0];
+                    if (key == "code")
+                        retObj.authCode = param[p].split("=")[1];
+                }
                 // DEBUG
                 // console.log("Feedly auth code: " + retObj.authCode);
             } else {
@@ -120,7 +129,7 @@ QtObject {
 
         if (authCode || refreshToken) {
             if (authCode) {
-                param = { "code": authCode, "client_id": feedlyClientId, "client_secret": feedlyClientSecret, "redirect_uri": FeedlyAPI._redirectUri, "state": "", "grant_type": "authorization_code" };
+                param = { "code": authCode, "client_id": feedlyClientId, "client_secret": feedlyClientSecret, "redirect_uri": FeedlyAPI._redirectUri, "grant_type": "authorization_code" };
             } else {
                 param = { "refresh_token": refreshToken, "client_id": feedlyClientId, "client_secret": feedlyClientSecret, "grant_type": "refresh_token" };
             }
@@ -131,7 +140,7 @@ QtObject {
 
     function accessTokenDoneCB(retObj) {
         if (retObj.status == 200) {
-            userId = retObj.response.id;
+            userId = "default" //retObj.response.id;
             accessToken = retObj.response.access_token;
             var tmpDate = new Date();
             tmpDate.setSeconds(tmpDate.getSeconds() + retObj.response.expires_in);
@@ -191,14 +200,17 @@ QtObject {
                 if (!feed) return;
                 var model =
                         ({
-                             "id": feed.id,
+                             "id": feed.id.toString(),
                              "title": feed.feed_title,
                              "category": category ? category : qsTr("Uncategorized"),
+                                                    "categories": [],
                              "imgUrl": feed.favicon_url,
                              "unreadCount": feed.ng + feed.nt + feed.ps,
                                                     "positive": feed.ps,
                                                     "neutral": feed.nt,
                                                     "negative": feed.ng,
+                                                    "lang": "",
+                                                    "busy": false,
                          });
                 tmpSubscriptions.push(model);
             }
@@ -304,7 +316,9 @@ QtObject {
     function getStreamContent(subscriptionId, more) {
         if (subscriptionId) {
             busy = true;
-            var param = { "streamId": subscriptionId, "count": 40, "ranked": "newest", "unreadOnly": "true", "continuation": (more ? continuation : "") };
+            if (!more) page = 1;
+            else page++;
+            var param = { "streamId": subscriptionId, "read_filter": "unread", 'page': page };
             FeedlyAPI.call("streamContent", param, streamContentDoneCB, accessToken);
         } else error(qsTr("No subscriptionId found."));
     }
@@ -313,37 +327,38 @@ QtObject {
         if (checkResponse(retObj, streamContentDoneCB)) {
             var stripHtmlTags = new RegExp("<[^>]*>", "gi");
             var normalizeSpaces = new RegExp("\\s+", "g");
-            if (!retObj.callParams.continuation) articlesListModel.clear();
-            continuation = ((typeof retObj.response.continuation != "undefined") ? retObj.response.continuation : "");
-            if (Array.isArray(retObj.response.items)) {
-                for (var i = 0; i < retObj.response.items.length; i++) {
-                    var tmpObj = retObj.response.items[i];
+            if (!retObj.callParams.page) articlesListModel.clear();
+            continuation = true;
+
+            if (Array.isArray(retObj.response.stories)) {
+                for (var i = 0; i < retObj.response.stories.length; i++) {
+                    var tmpObj = retObj.response.stories[i];
                     // Create updated date object
-                    var tmpUpd = new Date(((typeof tmpObj.updated !== "undefined") ? tmpObj.updated : tmpObj.published));
+                    var tmpUpd = new Date(tmpObj.story_date);
                     // Extract date part
                     var tmpUpdDate = new Date(tmpUpd.getFullYear(), tmpUpd.getMonth(), tmpUpd.getDate());
                     // Create article summary
-                    var tmpSummary = ((typeof tmpObj.summary !== "undefined") ? tmpObj.summary.content : ((typeof tmpObj.content !== "undefined") ? tmpObj.content.content : ""));
+                    var tmpSummary = ((typeof tmpObj.story_title !== "undefined") ? tmpObj.story_title : ((typeof tmpObj.story_content !== "undefined") ? tmpObj.story_content : ""));
                     if (tmpSummary) tmpSummary = tmpSummary.replace(stripHtmlTags, " ").replace(normalizeSpaces, " ").trim().substr(0, 320);
-                    articlesListModel.append({ "id": tmpObj.id,
-                                               "title": ((typeof tmpObj.title !== "undefined") ? tmpObj.title : qsTr("No title")),
-                                               "author": ((typeof tmpObj.author !== "undefined") ? tmpObj.author : qsTr("Unknown")),
+                    articlesListModel.append({ "id": tmpObj.story_hash,
+                                               "title": ((typeof tmpObj.story_title !== "undefined") ? tmpObj.story_title : qsTr("No title")),
+                                               "author": ((typeof tmpObj.story_authors !== "undefined") ? tmpObj.story_authors : qsTr("Unknown")),
                                                "updated": tmpUpd,
                                                "sectionLabel": Format.formatDate(tmpUpd, Formatter.TimepointSectionRelative),
-                                               "imgUrl": (((typeof tmpObj.visual !== "undefined") && tmpObj.visual.url && tmpObj.visual.url !== "none") ? tmpObj.visual.url : ""),
-                                               "unread": tmpObj.unread,
+                                               "imgUrl": (((typeof tmpObj.image_urls === "Array") && tmpObj.image_urls.length > 0) ? tmpObj.image_urls[0] : ""),
+                                               "unread": !tmpObj.read_status,
                                                "summary": (tmpSummary ? tmpSummary : qsTr("No preview")),
-                                               "content": ((typeof tmpObj.content !== "undefined") ? tmpObj.content.content : ((typeof tmpObj.summary !== "undefined") ? tmpObj.summary.content : "")),
-                                               "contentUrl": ((typeof tmpObj.alternate !== "undefined") ? tmpObj.alternate[0].href : ""),
-                                               "streamId": ((typeof tmpObj.origin !== "undefined") ? tmpObj.origin.streamId : retObj.response.id),
-                                               "streamTitle": ((typeof tmpObj.origin !== "undefined") ? tmpObj.origin.title : ((typeof retObj.response.title !== "undefined") ? retObj.response.title : "")),
+                                               "content": ((typeof tmpObj.story_content !== "undefined") ? tmpObj.story_content : ""),
+                                               "contentUrl": ((typeof tmpObj.story_permalink !== "undefined") ? tmpObj.story_permalink : ""),
+                                               "streamId": ((typeof tmpObj.story_feed_id !== "undefined") ? tmpObj.story_feed_id : retObj.response.feed_id),
+                                               "streamTitle": "no title",
                                                "busy": false,
                                                "tagging": false
                                              });
                 }
             }
             busy = false;
-            if (!retObj.callParams.continuation) getMarkersCounts();
+            //if (!retObj.callParams.continuation) getMarkersCounts();
         }
         // DEBUG
         // console.log(JSON.stringify(retObj));
@@ -410,14 +425,14 @@ QtObject {
                         }
                     }
                 }
-                var param = { "action": action, "type": "entries", "entryIds": [entryId] };
+                var param = { "story_hash": entryId, "action": action };
                 FeedlyAPI.call("markers", param, markEntryDoneCB, accessToken);
             } else error(qsTr("No entryId found."));
         } else error(qsTr("Unknown marker action."));
     }
 
     function markEntryDoneCB(retObj) {
-        var entryId = retObj.callParams.entryIds[0];
+        var entryId = retObj.callParams.story_hash;
         var articleIdx = -1;
         var streamId = "";
         if (entryId && (articlesListModel.count > 0)) {
@@ -646,8 +661,6 @@ QtObject {
         feedsListModel = Qt.createQmlObject('import QtQuick 2.0; ListModel { }', feedly);
         articlesListModel = Qt.createQmlObject('import QtQuick 2.0; ListModel { }', feedly);
         DB.getAuthTokens(feedly);
-        // TODO: For testing purposes
-        signedIn = true;
         if (refreshToken) {
             var tmpDate = new Date();
             tmpDate.setHours(tmpDate.getHours() + 1);

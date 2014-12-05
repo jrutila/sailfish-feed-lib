@@ -20,6 +20,7 @@ Page {
     property string contentUrl: ""
     property ListModel galleryModel: ListModel {}
     readonly property string pageType: "articleContent"
+    property var nextItem: null
 
     function update() {
         if (feedly.currentEntry !== null) {
@@ -187,9 +188,14 @@ Page {
         PushUpMenu {
             MenuItem {
                 text: qsTr("Next article")
+                visible: nextItem != null
                 onClicked: {
-                    feedly.currentEntry = articlesListView.model.get(index);
-                    pageStack.replace(Qt.resolvedUrl("ArticlePage.qml"));
+                    var n = nextItem();
+                    if (!n) pageStack.pop();
+                    else {
+                        feedly.currentEntry = nextItem();
+                        pageStack.replace(Qt.resolvedUrl("ArticlePage.qml"));
+                    }
                 }
             }
         }

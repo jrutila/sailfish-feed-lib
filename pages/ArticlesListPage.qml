@@ -154,7 +154,21 @@ Page {
                     page.unreadCount--;
                 }
                 feedly.currentEntry = articlesListView.model.get(index);
-                pageStack.push(Qt.resolvedUrl("ArticlePage.qml"));
+                var nextItem = function() {
+                    if (articlesListView.model.length >= index)
+                    {
+                        var model = articlesListView.model.get(index+1);
+                        if (model.unread)
+                        {
+                            feedly.markEntry(model.id, "markAsRead");
+                            page.unreadCount--;
+                        }
+                        return model;
+                    } else {
+                        console.log("Should fetch more stuff!!")
+                    }
+                }
+                pageStack.push(Qt.resolvedUrl("ArticlePage.qml"), { 'nextItem': nextItem });
             }
 
             onPressAndHold: {

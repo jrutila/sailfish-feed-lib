@@ -265,7 +265,7 @@ QtObject {
             }
         }
         busy = false;
-        if (false && feedsListModel.count > 0) {
+        if (feedsListModel.count > 0) {
             getMarkersCounts();
         }
         // DEBUG
@@ -284,21 +284,21 @@ QtObject {
 
     function markersCountsDoneCB(retObj) {
         if (checkResponse(retObj, markersCountsDoneCB)) {
-            if (Array.isArray(retObj.response.unreadcounts)) {
-                totalUnread = 0;
-                for (var i = 0; i < retObj.response.unreadcounts.length; i++) {
-                    var tmpObj = retObj.response.unreadcounts[i];
-                    var tmpTotUnreadUpd = false;
-                    for (var j = 0; j < feedsListModel.count; j++) {
-                        if (feedsListModel.get(j).id === tmpObj.id) {
-                            feedsListModel.setProperty(j, "unreadCount", tmpObj.count);
-                            if (userId) {
-                                if (tmpObj.id === ("user/" + userId + "/category/global.all")) totalUnread = tmpObj.count;
-                            } else {
-                                if (!tmpTotUnreadUpd) {
-                                    totalUnread += tmpObj.count;
-                                    tmpTotUnreadUpd = true;
-                                }
+            for (var feed_id in retObj.response.feeds)
+            {
+                var tmpObj = retObj.response.feeds[feed_id];
+                tmpObj.count = tmpObj.ps + tmpObj.nt + tmpObj.ng;
+                var tmpTotUnreadUpd = false;
+                for (var j = 0; j < feedsListModel.length; j++)
+                {
+                    if (feedsListModel.get(j).id === feed_id) {
+                        feedsListModel.setProperty(j, "unreadCount", tmpObj.count);
+                        if (userId) {
+                            if (tmpObj.id === ("user/" + userId + "/category/global.all")) totalUnread = tmpObj.count;
+                        } else {
+                            if (!tmpTotUnreadUpd) {
+                                totalUnread += tmpObj.count;
+                                tmpTotUnreadUpd = true;
                             }
                         }
                     }
@@ -358,7 +358,7 @@ QtObject {
                 }
             }
             busy = false;
-            //if (!retObj.callParams.continuation) getMarkersCounts();
+            if (!retObj.c/NallParams.page) getMarkersCounts();
         }
         // DEBUG
         // console.log(JSON.stringify(retObj));
@@ -479,7 +479,7 @@ QtObject {
                     var allFeedsIdx = -1;
                     for (var j = 0; j < feedsListModel.count; j++) {
                         if (feedsListModel.get(j).id.indexOf("/category/global.all") >= 0) allFeedsIdx = j;
-                        if (feedsListModel.get(j).id === streamId) {
+                        if (feedsListModel.get(j).id === streamId.toString()) {
                             var tmpUnreadCount = feedsListModel.get(j).unreadCount;
                             if ((retObj.callParams.action === "markAsRead") && (tmpUnreadCount > 0)) tmpUnreadCount--;
                             else if (retObj.callParams.action === "keepUnread") tmpUnreadCount++;

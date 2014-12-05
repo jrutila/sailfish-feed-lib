@@ -45,7 +45,7 @@ Item {
 
         anchors { right: unreadCountLabel.left; verticalCenter: parent.verticalCenter }
         text: positive
-        visible: (positive > 0)
+        visible: false // TODO: (positive > 0)
         color: Theme.secondaryHighlightColor
     }
     Label {

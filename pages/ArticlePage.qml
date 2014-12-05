@@ -43,7 +43,11 @@ Page {
                     var normalizeSpaces = new RegExp("\\s+", "g");
                     tmpContent = tmpContent.replace(stripImgTag, " ").replace(normalizeSpaces, " ").trim();
                 }
-                content = tmpContent;
+                var onlyText = tmpContent.replace(/<(?:.|\n)*?>/gm, '').replace(" ", "");
+                if (onlyText.length)
+                    content = tmpContent;
+                else
+                    content = "";
                 contentUrl = feedly.currentEntry.contentUrl;
                 var articleInfoProp = { "title": feedly.currentEntry.title,
                                         "author": feedly.currentEntry.author,

@@ -173,6 +173,20 @@ QtObject {
     }
 
     /*
+     * Check if given stream is a category
+     */
+    function streamIsCategory(streamId) {
+        return (streamId.indexOf("user/" + userId + "/category/") >= 0);
+    }
+
+    /*
+     * Check if given stream is collection of articles with the same tag
+     */
+    function streamIsTag(streamId) {
+        return (streamId.indexOf("user/" + userId + "/tag/") >= 0);
+    }
+
+    /*
      * Get subscriptions
      */
     function getSubscriptions() {
@@ -566,6 +580,13 @@ QtObject {
             busy = false;
             getCategoriesCompleted(categories);
         }
+    }
+
+    /*
+     * Create new categoryId from its label
+     */
+    function createCategoryId(label) {
+        return "user/" + userId + "/category/" + label.trim().toLowerCase().replace(/\s/gi, "_");
     }
 
     /*

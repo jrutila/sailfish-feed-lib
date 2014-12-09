@@ -17,8 +17,6 @@ Page {
     property int unreadCount
     readonly property string pageType: "articlesList"
 
-    property bool _isTag: (streamId.indexOf("/tag/") > 0)
-
     allowedOrientations: Orientation.Portrait | Orientation.Landscape
 
     SilicaListView {
@@ -97,13 +95,25 @@ Page {
                 }
 
                 Label {
+                    id: articleStreamTitle
+
+                    anchors { top: articleTitle.bottom; left: parent.left; right: parent.right }
+                    font.pixelSize: Theme.fontSizeExtraSmall
+                    truncationMode: TruncationMode.Fade
+                    horizontalAlignment: Text.AlignRight
+                    text: streamTitle
+                    color: highlighted ? Theme.highlightColor : Theme.primaryColor
+                    visible: (feedly.streamIsTag(page.streamId) || feedly.streamIsCategory(page.streamId))
+                }
+
+                Label {
                     id: articleSummary
 
-                    anchors { top: articleTitle.bottom; left: parent.left; right: parent.right; }
+                    anchors { top: (articleStreamTitle.visible ? articleStreamTitle.bottom : articleTitle.bottom); left: parent.left; right: parent.right; }
                     clip: true
                     font.pixelSize: Theme.fontSizeExtraSmall
                     elide: Text.ElideRight
-                    maximumLineCount: 3
+                    maximumLineCount: (articleStreamTitle.visible ? 2 : 3)
                     wrapMode: Text.WordWrap
                     text: summary
                     color: highlighted ? (unread ? Theme.highlightColor : Theme.secondaryHighlightColor) : (unread ? Theme.primaryColor : Theme.secondaryColor)
@@ -113,7 +123,7 @@ Page {
                 ProgressBar {
                     id: taggingProgressBar
 
-                    anchors { top: articleTitle.bottom; left: parent.left; right: parent.right; }
+                    anchors { top: (articleStreamTitle.visible ? articleStreamTitle.bottom : articleTitle.bottom); left: parent.left; right: parent.right; }
                     visible: (tagging && Qt.application.active)
                     indeterminate: true
                 }
@@ -205,14 +215,14 @@ Page {
                 }
 
                 MenuItem {
-                    visible: (!_isTag && articlesListView.count && page.unreadCount && (contextMenu.modelIndex < (articlesListView.count - 1)))
+                    visible: (!feedly.streamIsTag(page.streamId) && articlesListView.count && page.unreadCount && (contextMenu.modelIndex < (articlesListView.count - 1)))
                     text: qsTr("Mark this and below as read")
                     onClicked: remorsePopup.execute(qsTr("Marking articles as read"), function() { feedly.markFeedAsRead(streamId, contextMenu.articleId); })
                 }
 
                 MenuItem {
-                    text: (_isTag ? qsTr("Forget") : qsTr("Save for later"))
-                    onClicked: feedly.markEntry(contextMenu.articleId, (_isTag ? "markAsUnsaved" : "markAsSaved"));
+                    text: (feedly.streamIsTag(page.streamId) ? qsTr("Forget") : qsTr("Save for later"))
+                    onClicked: feedly.markEntry(contextMenu.articleId, (feedly.streamIsTag(page.streamId) ? "markAsUnsaved" : "markAsSaved"));
                 }
 
                 MenuItem {
@@ -225,7 +235,7 @@ Page {
 
         PullDownMenu {
             MenuItem {
-                visible: (!_isTag && (articlesListView.count > 0))
+                visible: (!feedly.streamIsTag(page.streamId) && (articlesListView.count > 0))
                 text: qsTr("Mark all as read")
                 onClicked: remorsePopup.execute(qsTr("Marking all articles as read"), function() { feedly.markFeedAsRead(streamId, articlesListView.model.get(0).id); })
             }
@@ -246,7 +256,7 @@ Page {
             }
 
             MenuItem {
-                visible: !_isTag
+                visible: !feedly.streamIsTag(page.streamId)
                 text: qsTr("Mark all as read")
                 onClicked: remorsePopup.execute(qsTr("Marking all articles as read"), function() { feedly.markFeedAsRead(streamId, articlesListView.model.get(0).id); })
             }

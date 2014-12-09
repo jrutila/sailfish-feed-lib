@@ -29,13 +29,13 @@ Page {
                 articleId = feedly.currentEntry.id;
                 originalContent = feedly.currentEntry.content;
                 // Remove target attributes from <a> tags as they don't work with the WebView
-                var stripTargetAttr = new RegExp("(<a[^>]+?)target\s*=\s*(?:\"|')[^\"']*(?:\"|')", "gi");
+                var stripTargetAttr = new RegExp("(<a[^>]+?)target\\s*=\\s*(?:\"|')[^\"']*(?:\"|')", "gi");
                 originalContent = originalContent.replace(stripTargetAttr, "$1");
                 // Clean article content and extract image urls
                 var tmpContent = originalContent; // feedly.currentEntry.content;
                 galleryModel.clear();
                 if (tmpContent) {
-                    var findImgUrls = new RegExp("<img[^>]+src\s*=\s*(?:\"|')(.+?)(?:\"|')", "gi");
+                    var findImgUrls = new RegExp("<img[^>]+src\\s*=\\s*(?:\"|')(.+?)(?:\"|')", "gi");
                     var tmpMatch;
                     while ((tmpMatch = findImgUrls.exec(tmpContent)) !== null) {
                         if(tmpMatch[1]) galleryModel.append({ "imgUrl": tmpMatch[1] });
@@ -43,6 +43,7 @@ Page {
                     var stripImgTag = new RegExp("<img[^>]*>", "gi");
                     var normalizeSpaces = new RegExp("\\s+", "g");
                     tmpContent = tmpContent.replace(stripImgTag, " ").replace(normalizeSpaces, " ").trim();
+                    if (!tmpContent.replace(/<[^>]+>/gi,"").trim()) tmpContent = "";
                 }
                 var onlyText = tmpContent.replace(/<(?:.|\n)*?>/gm, '').replace(" ", "");
                 if (onlyText.length)
@@ -127,6 +128,12 @@ Page {
                         visible: running
                     }
 
+                    MouseArea {
+                        anchors.fill: parent
+
+                        onClicked: { page.state = "oneImageOnly" }
+                    }
+
                     onStatusChanged: { if (status === Image.Error) removeFromModel(index); }
 
                     onPaintedWidthChanged: {
@@ -139,6 +146,13 @@ Page {
                         if ((paintedHeight > 0) && (paintedHeight <= Theme.iconSizeSmall)) removeFromModel(index);
                     }
                 }
+            }
+
+            Label {
+                anchors.horizontalCenter: parent.horizontalCenter
+                visible: (articleGalleryView.count > 1)
+                font.pixelSize: Theme.fontSizeTiny
+                text: (articleGalleryView.currentIndex + 1) + "/" + articleGalleryView.count
             }
 
             Label {
@@ -208,6 +222,7 @@ Page {
 
         anchors.fill: parent
         visible: false
+        opacity: 0
 
         header: PageHeader { title: page.title }
 
@@ -216,6 +231,10 @@ Page {
                 text: qsTr("Back to default layout")
                 onClicked: page.state = ""
             }
+        }
+
+        ScrollDecorator {
+            flickable: originalArticleContainer
         }
 
         onNavigationRequested: {
@@ -234,6 +253,7 @@ Page {
 
         anchors.fill: parent
         visible: false
+        opacity: 0
         contentWidth: parent.width
         contentHeight: parent.height
 
@@ -278,7 +298,7 @@ Page {
                 clip: true
                 smooth: true
                 fillMode: Image.PreserveAspectFit
-                source: ((galleryModel.count && (typeof galleryModel.get(0).imgUrl !== "undefined")) ? galleryModel.get(0).imgUrl : "")
+                source: ((galleryModel.count && (typeof galleryModel.get(articleGalleryView.currentIndex).imgUrl !== "undefined")) ? galleryModel.get(articleGalleryView.currentIndex).imgUrl : "")
 
                 function _adjustImageAspect() {
                     // Reset image container size
@@ -300,6 +320,13 @@ Page {
                     size: BusyIndicatorSize.Large
                     running: (parent.status === Image.Loading)
                     visible: running
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    enabled: (page.content && galleryModel.count)
+
+                    onClicked: { page.state = "" }
                 }
 
                 Connections {
@@ -335,18 +362,20 @@ Page {
             PropertyChanges {
                 target: articleView
                 visible: false
+                opacity: 0
             }
 
             PropertyChanges {
                 target: articleImageContainer
                 visible: false
+                opacity: 0
             }
 
             PropertyChanges {
                 target: originalArticleContainer
                 visible: true
+                opacity: 1
             }
-
         },
         State {
             name: "oneImageOnly"
@@ -355,11 +384,19 @@ Page {
             PropertyChanges {
                 target: articleView
                 visible: false
+                opacity: 0
             }
 
             PropertyChanges {
                 target: articleImageContainer
                 visible: true
+                opacity: 1
+            }
+
+            PropertyChanges {
+                target: originalArticleContainer
+                visible: false
+                opacity: 0
             }
 
             PropertyChanges {
@@ -367,6 +404,15 @@ Page {
                 showNavigationIndicator: ((articleImageContainer.contentWidth <= articleImageContainer.width) && (articleImageContainer.contentHeight <= articleImageContainer.height))
                 backNavigation: page.showNavigationIndicator
                 forwardNavigation: page.showNavigationIndicator
+            }
+        }
+    ]
+
+    transitions: [
+        Transition {
+            PropertyAnimation {
+                targets: [articleView, originalArticleContainer, articleImageContainer]
+                property: "opacity"
             }
         }
     ]

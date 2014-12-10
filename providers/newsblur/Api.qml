@@ -425,7 +425,11 @@ QtObject {
                         }
                     }
                 }
-                var param = { "story_hash": entryId, "action": action };
+                var route = "";
+                if (action == "markAsRead") route = "mark_story_hashes_as_read";
+                if (action == "keepUnread") route = "mark_story_hash_as_unread";
+
+                var param = { "story_hash": entryId, "action": action, "route": route };
                 FeedlyAPI.call("markers", param, markEntryDoneCB, accessToken);
             } else error(qsTr("No entryId found."));
         } else error(qsTr("Unknown marker action."));

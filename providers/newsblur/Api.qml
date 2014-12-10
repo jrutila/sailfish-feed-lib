@@ -234,8 +234,8 @@ QtObject {
             tmpSubscriptions.sort(function (a, b) {
                 if (a.category > b.category) return 1;
                 if (a.category < b.category) return -1;
-                if (a.positive > b.positive) return 1;
-                if (a.positive < b.positive) return -1;
+                if (a.positive > b.positive) return -1;
+                if (a.positive < b.positive) return 1;
                 return 0;
             });
             if (tmpSubscriptions.length) {
@@ -251,6 +251,14 @@ QtObject {
                                               "busy": false });
                     feedsListModel.append({ "id": "user/" + userId + "/category/global.all",
                                               "title": qsTr("All feeds"),
+                                              "category": "",
+                                              "categories": [],
+                                              "imgUrl": "",
+                                              "lang": "",
+                                              "unreadCount": 0,
+                                              "busy": false });
+                    feedsListModel.append({ "id": "user/" + userId + "/category/global.positive",
+                                              "title": qsTr("Important"),
                                               "category": "",
                                               "categories": [],
                                               "imgUrl": "",

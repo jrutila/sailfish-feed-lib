@@ -117,7 +117,7 @@ Page {
                     wrapMode: Text.WordWrap
                     text: summary
                     color: highlighted ? (unread ? Theme.highlightColor : Theme.secondaryHighlightColor) : (unread ? Theme.primaryColor : Theme.secondaryColor)
-                    visible: !taggingProgressBar.visible
+                    visible: summary && !taggingProgressBar.visible
                 }
 
                 ProgressBar {

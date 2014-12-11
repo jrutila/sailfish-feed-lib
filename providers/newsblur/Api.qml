@@ -194,6 +194,8 @@ QtObject {
             var tmpSubscriptions = [];
             feedsListModel.clear();
             uniqueFeeds = 0;
+            var positiveCount = 0;
+            var overallCount = 0;
             var resp = retObj.response;
 
             var addFeed = function(feed, category) {
@@ -212,6 +214,8 @@ QtObject {
                                                     "lang": "",
                                                     "busy": false,
                          });
+                positiveCount += feed.ps;
+                overallCount += feed.ps + feed.nt;
                 tmpSubscriptions.push(model);
             }
 
@@ -255,7 +259,7 @@ QtObject {
                                               "categories": [],
                                               "imgUrl": "",
                                               "lang": "",
-                                              "unreadCount": 0,
+                                              "unreadCount": overallCount,
                                               "busy": false });
                     feedsListModel.append({ "id": "user/" + userId + "/category/global.positive",
                                               "title": qsTr("Important"),
@@ -263,7 +267,7 @@ QtObject {
                                               "categories": [],
                                               "imgUrl": "",
                                               "lang": "",
-                                              "unreadCount": 0,
+                                              "unreadCount": positiveCount,
                                               "busy": false });
                 }
                 // Populate ListModel
@@ -337,6 +341,13 @@ QtObject {
             var normalizeSpaces = new RegExp("\\s+", "g");
             if (!retObj.callParams.page) articlesListModel.clear();
             continuation = true;
+            var streamTitle = "-";
+
+            for (var j = 0; j < feedsListModel.count; j++) {
+                var feed = feedsListModel.get(j);
+                if (feed && feed.id === retObj.callParams['streamId'])
+                    streamTitle = feed.title;
+            }
 
             if (Array.isArray(retObj.response.stories)) {
                 for (var i = 0; i < retObj.response.stories.length; i++) {
@@ -346,7 +357,7 @@ QtObject {
                     // Extract date part
                     var tmpUpdDate = new Date(tmpUpd.getFullYear(), tmpUpd.getMonth(), tmpUpd.getDate());
                     // Create article summary
-                    var tmpSummary = ((typeof tmpObj.story_title !== "undefined") ? tmpObj.story_title : ((typeof tmpObj.story_content !== "undefined") ? tmpObj.story_content : ""));
+                    var tmpSummary = "" // No summaries in NewsBlur //((typeof tmpObj.story_title !== "undefined") ? tmpObj.story_title : ((typeof tmpObj.story_content !== "undefined") ? tmpObj.story_content : ""));
                     if (tmpSummary) tmpSummary = tmpSummary.replace(stripHtmlTags, " ").replace(normalizeSpaces, " ").trim().substr(0, 320);
                     articlesListModel.append({ "id": tmpObj.story_hash,
                                                "title": ((typeof tmpObj.story_title !== "undefined") ? tmpObj.story_title : qsTr("No title")),
@@ -355,11 +366,11 @@ QtObject {
                                                "sectionLabel": Format.formatDate(tmpUpd, Formatter.TimepointSectionRelative),
                                                "imgUrl": (((typeof tmpObj.image_urls === "Array") && tmpObj.image_urls.length > 0) ? tmpObj.image_urls[0] : ""),
                                                "unread": !tmpObj.read_status,
-                                               "summary": (tmpSummary ? tmpSummary : qsTr("No preview")),
+                                               "summary": "", //(tmpSummary ? tmpSummary : qsTr("No preview")),
                                                "content": ((typeof tmpObj.story_content !== "undefined") ? tmpObj.story_content : ""),
                                                "contentUrl": ((typeof tmpObj.story_permalink !== "undefined") ? tmpObj.story_permalink : ""),
                                                "streamId": ((typeof tmpObj.story_feed_id !== "undefined") ? tmpObj.story_feed_id : retObj.response.feed_id),
-                                               "streamTitle": "no title",
+                                               "streamTitle": streamTitle,
                                                "busy": false,
                                                "tagging": false
                                              });

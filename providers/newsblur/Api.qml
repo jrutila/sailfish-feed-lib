@@ -195,7 +195,7 @@ QtObject {
             feedsListModel.clear();
             uniqueFeeds = 0;
             var positiveCount = 0;
-            var overallCount = 0;
+            var neutralCount = 0;
             var resp = retObj.response;
 
             var addFeed = function(feed, category) {
@@ -215,7 +215,7 @@ QtObject {
                                                     "busy": false,
                          });
                 positiveCount += feed.ps;
-                overallCount += feed.ps + feed.nt;
+                neutralCount += feed.nt;
                 tmpSubscriptions.push(model);
             }
 
@@ -245,6 +245,7 @@ QtObject {
             if (tmpSubscriptions.length) {
                 // Add "All feeds" fake subscription
                 if (userId) {
+                    /*
                     feedsListModel.append({ "id": "user/" + userId + "/tag/global.saved",
                                               "title": qsTr("Saved for later"),
                                               "category": "",
@@ -253,13 +254,16 @@ QtObject {
                                               "lang": "",
                                               "unreadCount": 0,
                                               "busy": false });
+                    */
                     feedsListModel.append({ "id": "user/" + userId + "/category/global.all",
                                               "title": qsTr("All feeds"),
                                               "category": "",
                                               "categories": [],
                                               "imgUrl": "",
                                               "lang": "",
-                                              "unreadCount": overallCount,
+                                              "neutral": neutralCount,
+                                              "positive": positiveCount,
+                                              "unreadCount": neutralCount+positiveCount,
                                               "busy": false });
                     feedsListModel.append({ "id": "user/" + userId + "/category/global.positive",
                                               "title": qsTr("Important"),
@@ -267,6 +271,7 @@ QtObject {
                                               "categories": [],
                                               "imgUrl": "",
                                               "lang": "",
+                                              "positive": positiveCount,
                                               "unreadCount": positiveCount,
                                               "busy": false });
                 }

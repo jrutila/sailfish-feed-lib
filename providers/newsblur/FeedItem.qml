@@ -30,7 +30,7 @@ Item {
     Label {
         anchors {
             left: feedVisual.right
-            right: positiveCountLabel.left
+            right: neutralCountLabel.left
             leftMargin: Theme.paddingMedium
             rightMargin: Theme.paddingMedium
             verticalCenter: parent.verticalCenter
@@ -41,20 +41,24 @@ Item {
     }
 
     Label {
-        id: positiveCountLabel
+        id: neutralCountLabel
 
-        anchors { right: unreadCountLabel.left; verticalCenter: parent.verticalCenter }
-        text: positive
-        visible: false // TODO: (positive > 0)
+        anchors {
+            right: positiveCountLabel.left;
+            verticalCenter: parent.verticalCenter;
+            rightMargin: 5;
+        }
+        text: neutral
+        visible: (neutral > 0)
         color: Theme.secondaryHighlightColor
+        font.pointSize: Theme.fontSizeTiny
     }
     Label {
-        id: unreadCountLabel
+        id: positiveCountLabel
 
         anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-        text: unreadCount
-        visible: (unreadCount > 0)
+        text: positive;
+        visible: (positive > 0)
         color: Theme.highlightColor
-        font.pointSize: Theme.fontSizeTiny
     }
 }

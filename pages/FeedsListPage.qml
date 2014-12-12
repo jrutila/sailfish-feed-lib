@@ -34,11 +34,32 @@ Page {
         delegate: ListItem {
             id: feedItem
 
-            property bool menuOpen: ((feedsListView.contextMenu != null) && (feedsListView.contextMenu.parent === feedItem))
-
             width: feedsListView.width
-            contentHeight: menuOpen ? feedsListView.contextMenu.height + Theme.itemSizeSmall : Theme.itemSizeSmall
-            enabled: !busy
+            contentHeight: unreadCount > 0 ? Theme.itemSizeSmall : 0
+            enabled: !busy && unreadCount
+            visible: unreadCount
+
+            menu:
+            ContextMenu {
+                id: contextMenu
+
+                property Item visualParent
+                property string feedId
+                property string feedTitle
+                property string feedImgUrl
+                property string feedLang
+                property var feedCategories
+
+                MenuItem {
+                    text: qsTr("Manage feed")
+                    onClicked: pageStack.push(Qt.resolvedUrl("../dialogs/UpdateFeedDialog.qml"), { "feedId": feedId, "title": feedTitle, "imgUrl": feedImgUrl, "lang": feedLang, "categories": feedCategories })
+                }
+
+                MenuItem {
+                    text: qsTr("Unsubscribe")
+                    onClicked: visualParent.unsubscribe();
+                }
+            }
 
             function unsubscribe() {
                 remorseItem.execute(feedItem, qsTr("Unsubscribing"));
@@ -65,51 +86,10 @@ Page {
             onClicked: {
                 if ((unreadCount > 0) || feedly.streamIsTag(id)) pageStack.push(Qt.resolvedUrl("ArticlesListPage.qml"), { "title": title, "streamId": id, "unreadCount": unreadCount });
             }
-
-            onPressAndHold: {
-                if (!busy && !feedly.streamIsCategory(id) && !feedly.streamIsTag(id)) {
-                    if (!feedsListView.contextMenu) feedsListView.contextMenu = contextMenuComponent.createObject(feedsListView);
-                    feedsListView.contextMenu.feedId = id;
-                    feedsListView.contextMenu.feedTitle = title;
-                    feedsListView.contextMenu.feedImgUrl = imgUrl;
-                    feedsListView.contextMenu.feedLang = lang;
-                    // Convert categories from QQmlListModel back to an Array object
-                    var tmpCategories = [];
-                    for (var i = 0; i < categories.count; i++) tmpCategories.push({ "id": categories.get(i).id, "label": categories.get(i).label });
-                    feedsListView.contextMenu.feedCategories = tmpCategories;
-                    feedsListView.contextMenu.visualParent = feedItem;
-                    feedsListView.contextMenu.show(feedItem);
-                }
-            }
         }
 
         section.property: "category"
         section.delegate: SectionHeader { text: section }
-
-        Component {
-            id: contextMenuComponent
-
-            ContextMenu {
-                id: contextMenu
-
-                property Item visualParent
-                property string feedId
-                property string feedTitle
-                property string feedImgUrl
-                property string feedLang
-                property var feedCategories
-
-                MenuItem {
-                    text: qsTr("Manage feed")
-                    onClicked: pageStack.push(Qt.resolvedUrl("../dialogs/UpdateFeedDialog.qml"), { "feedId": feedId, "title": feedTitle, "imgUrl": feedImgUrl, "lang": feedLang, "categories": feedCategories })
-                }
-
-                MenuItem {
-                    text: qsTr("Unsubscribe")
-                    onClicked: visualParent.unsubscribe();
-                }
-            }
-        }
 
         PullDownMenu {
             MenuItem {

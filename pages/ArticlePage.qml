@@ -23,16 +23,16 @@ Page {
     property var nextItem: null
 
     function update() {
-        if (feedly.currentEntry !== null) {
-            if (articleId !== feedly.currentEntry.id) {
-                title = feedly.currentEntry.title;
-                articleId = feedly.currentEntry.id;
-                originalContent = feedly.currentEntry.content;
+        if (feedAPI.currentEntry !== null) {
+            if (articleId !== feedAPI.currentEntry.id) {
+                title = feedAPI.currentEntry.title;
+                articleId = feedAPI.currentEntry.id;
+                originalContent = feedAPI.currentEntry.content;
                 // Remove target attributes from <a> tags as they don't work with the WebView
                 var stripTargetAttr = new RegExp("(<a[^>]+?)target\\s*=\\s*(?:\"|')[^\"']*(?:\"|')", "gi");
                 originalContent = originalContent.replace(stripTargetAttr, "$1");
                 // Clean article content and extract image urls
-                var tmpContent = originalContent; // feedly.currentEntry.content;
+                var tmpContent = originalContent; // feedAPI.currentEntry.content;
                 galleryModel.clear();
                 if (tmpContent) {
                     var findImgUrls = new RegExp("<img[^>]+src\\s*=\\s*(?:\"|')(.+?)(?:\"|')", "gi");
@@ -50,11 +50,11 @@ Page {
                     content = tmpContent;
                 else
                     content = "";
-                contentUrl = feedly.currentEntry.contentUrl;
-                var articleInfoProp = { "title": feedly.currentEntry.title,
-                                        "author": feedly.currentEntry.author,
-                                        "updated": new Date(feedly.currentEntry.updated),
-                                        "streamTitle": feedly.currentEntry.streamTitle };
+                contentUrl = feedAPI.currentEntry.contentUrl;
+                var articleInfoProp = { "title": feedAPI.currentEntry.title,
+                                        "author": feedAPI.currentEntry.author,
+                                        "updated": new Date(feedAPI.currentEntry.updated),
+                                        "streamTitle": feedAPI.currentEntry.streamTitle };
                 pageContainer.pushAttached(Qt.resolvedUrl("ArticleInfoPage.qml"), articleInfoProp);
             }
         } else {
@@ -207,7 +207,7 @@ Page {
                     var n = nextItem();
                     if (!n) pageStack.pop();
                     else {
-                        feedly.currentEntry = nextItem();
+                        feedAPI.currentEntry = nextItem();
                         pageStack.replace(Qt.resolvedUrl("ArticlePage.qml"));
                     }
                 }
@@ -346,7 +346,7 @@ Page {
     }
 
     Connections {
-        target: feedly
+        target: feedAPI
 
         onCurrentEntryChanged: page.update();
     }

@@ -21,12 +21,12 @@ Page {
         id: signInView
 
         anchors.fill: parent
-        visible: !feedly.busy
+        visible: !feedAPI.busy
 
         header: PageHeader {
             title: qsTr("Sign in")
         }
-        url: feedly.getSignInUrl();
+        url: feedAPI.getSignInUrl();
 
         ViewPlaceholder {
             id: errorPlaceholder
@@ -36,9 +36,9 @@ Page {
         }
 
         onUrlChanged: {
-            var authInfo = feedly.getAuthCodeFromUrl(url.toString());
+            var authInfo = feedAPI.getAuthCodeFromUrl(url.toString());
 
-            if (authInfo.authCode !== "") feedly.getAccessToken(authInfo.authCode);
+            if (authInfo.authCode !== "") feedAPI.getAccessToken(authInfo.authCode);
             else if (authInfo.error) {
                 error = authInfo.error;
                 errorPlaceholder.enabled = true;
@@ -48,10 +48,10 @@ Page {
     }
 
     Connections {
-        target: feedly
+        target: feedAPI
 
         onSignedInChanged: {
-            if (feedly.signedIn) pageContainer.pop();
+            if (feedAPI.signedIn) pageContainer.pop();
         }
 
         onError: errorPlaceholder.enabled = true;

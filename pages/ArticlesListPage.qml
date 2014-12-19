@@ -25,14 +25,14 @@ Page {
         property Item contextMenu
 
         anchors.fill: parent
-        visible: !feedly.busy
+        visible: !feedAPI.busy
         spacing: Theme.paddingMedium
 
         header: PageHeader {
             title: page.title
         }
 
-        model: feedly.articlesListModel
+        model: feedAPI.articlesListModel
         delegate: ListItem {
             id: articleItem
 
@@ -103,7 +103,7 @@ Page {
                     horizontalAlignment: Text.AlignRight
                     text: streamTitle
                     color: highlighted ? Theme.highlightColor : Theme.primaryColor
-                    visible: (feedly.streamIsTag(page.streamId) || feedly.streamIsCategory(page.streamId))
+                    visible: (feedAPI.streamIsTag(page.streamId) || feedAPI.streamIsCategory(page.streamId))
                 }
 
                 Label {
@@ -160,17 +160,17 @@ Page {
 
             onClicked: {
                 if (unread) {
-                    feedly.markEntry(id, "markAsRead");
+                    feedAPI.markEntry(id, "markAsRead");
                     page.unreadCount--;
                 }
-                feedly.currentEntry = articlesListView.model.get(index);
+                feedAPI.currentEntry = articlesListView.model.get(index);
                 var nextItem = function() {
                     if (articlesListView.model.length >= index)
                     {
                         var model = articlesListView.model.get(index+1);
                         if (model.unread)
                         {
-                            feedly.markEntry(model.id, "markAsRead");
+                            feedAPI.markEntry(model.id, "markAsRead");
                             page.unreadCount--;
                         }
                         return model;
@@ -208,21 +208,21 @@ Page {
                 MenuItem {
                     text: (contextMenu.articleUnread ? qsTr("Mark as read") : qsTr("Keep unread"))
                     onClicked: {
-                        feedly.markEntry(contextMenu.articleId, (contextMenu.articleUnread ? "markAsRead" : "keepUnread"));
+                        feedAPI.markEntry(contextMenu.articleId, (contextMenu.articleUnread ? "markAsRead" : "keepUnread"));
                         if (contextMenu.articleUnread) page.unreadCount--;
                         else page.unreadCount++;
                     }
                 }
 
                 MenuItem {
-                    visible: (!feedly.streamIsTag(page.streamId) && articlesListView.count && page.unreadCount && (contextMenu.modelIndex < (articlesListView.count - 1)))
+                    visible: (!feedAPI.streamIsTag(page.streamId) && articlesListView.count && page.unreadCount && (contextMenu.modelIndex < (articlesListView.count - 1)))
                     text: qsTr("Mark this and below as read")
-                    onClicked: remorsePopup.execute(qsTr("Marking articles as read"), function() { feedly.markFeedAsRead(streamId, contextMenu.articleId); })
+                    onClicked: remorsePopup.execute(qsTr("Marking articles as read"), function() { feedAPI.markFeedAsRead(streamId, contextMenu.articleId); })
                 }
 
                 MenuItem {
-                    text: (feedly.streamIsTag(page.streamId) ? qsTr("Forget") : qsTr("Save for later"))
-                    onClicked: feedly.markEntry(contextMenu.articleId, (feedly.streamIsTag(page.streamId) ? "markAsUnsaved" : "markAsSaved"));
+                    text: (feedAPI.streamIsTag(page.streamId) ? qsTr("Forget") : qsTr("Save for later"))
+                    onClicked: feedAPI.markEntry(contextMenu.articleId, (feedAPI.streamIsTag(page.streamId) ? "markAsUnsaved" : "markAsSaved"));
                 }
 
                 MenuItem {
@@ -235,14 +235,14 @@ Page {
 
         PullDownMenu {
             MenuItem {
-                visible: (!feedly.streamIsTag(page.streamId) && (articlesListView.count > 0))
+                visible: (!feedAPI.streamIsTag(page.streamId) && (articlesListView.count > 0))
                 text: qsTr("Mark all as read")
-                onClicked: remorsePopup.execute(qsTr("Marking all articles as read"), function() { feedly.markFeedAsRead(streamId, articlesListView.model.get(0).id); })
+                onClicked: remorsePopup.execute(qsTr("Marking all articles as read"), function() { feedAPI.markFeedAsRead(streamId, articlesListView.model.get(0).id); })
             }
 
             MenuItem {
                 text: qsTr("Refresh feed")
-                onClicked: feedly.getStreamContent(streamId)
+                onClicked: feedAPI.getStreamContent(streamId)
             }
         }
 
@@ -250,15 +250,15 @@ Page {
             visible: (articlesListView.count > 0)
 
             MenuItem {
-                visible: (feedly.continuation !== "")
+                visible: (feedAPI.continuation !== "")
                 text: qsTr("More articles")
-                onClicked: feedly.getStreamContent(streamId, true)
+                onClicked: feedAPI.getStreamContent(streamId, true)
             }
 
             MenuItem {
-                visible: !feedly.streamIsTag(page.streamId)
+                visible: !feedAPI.streamIsTag(page.streamId)
                 text: qsTr("Mark all as read")
-                onClicked: remorsePopup.execute(qsTr("Marking all articles as read"), function() { feedly.markFeedAsRead(streamId, articlesListView.model.get(0).id); })
+                onClicked: remorsePopup.execute(qsTr("Marking all articles as read"), function() { feedAPI.markFeedAsRead(streamId, articlesListView.model.get(0).id); })
             }
 
             MenuItem {
@@ -281,7 +281,7 @@ Page {
     }
 
     Connections {
-        target: feedly
+        target: feedAPI
 
         onEntryUnsaved: {
             if (articlesListView.count && (index < articlesListView.count)) articlesListView.model.remove(index);
@@ -289,10 +289,10 @@ Page {
     }
 
     Component.onCompleted: {
-        feedly.getStreamContent(streamId)
+        feedAPI.getStreamContent(streamId)
     }
 
     Component.onDestruction: {
-        feedly.articlesListModel.clear();
+        feedAPI.articlesListModel.clear();
     }
 }

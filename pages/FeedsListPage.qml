@@ -8,8 +8,7 @@
 
 import QtQuick 2.0
 import Sailfish.Silica 1.0
-
-import "../providers/newsblur/"
+import "../../provider" as Provider
 
 Page {
     id: page
@@ -24,13 +23,13 @@ Page {
         property Item contextMenu
 
         anchors.fill: parent
-        visible: !feedly.busy
+        visible: !feedAPI.busy
 
         header: PageHeader {
             title: qsTr("Your feeds")
         }
 
-        model: feedly.feedsListModel
+        model: feedAPI.feedsListModel
         delegate: ListItem {
             id: feedItem
 
@@ -65,14 +64,14 @@ Page {
                 remorseItem.execute(feedItem, qsTr("Unsubscribing"));
             }
 
-            FeedItem {
+            Provider.FeedItem {
                 id: feedDataContainer
             }
 
             RemorseItem {
                 id: remorseItem
 
-                onTriggered: { feedly.unsubscribe(id); }
+                onTriggered: { feedAPI.unsubscribe(id); }
             }
 
             BusyIndicator {
@@ -84,7 +83,7 @@ Page {
             }
 
             onClicked: {
-                if ((unreadCount > 0) || feedly.streamIsTag(id)) pageStack.push(Qt.resolvedUrl("ArticlesListPage.qml"), { "title": title, "streamId": id, "unreadCount": unreadCount });
+                if ((unreadCount > 0) || feedAPI.streamIsTag(id)) pageStack.push(Qt.resolvedUrl("ArticlesListPage.qml"), { "title": title, "streamId": id, "unreadCount": unreadCount });
             }
         }
 
@@ -98,29 +97,29 @@ Page {
             }
 
             MenuItem {
-                text: (feedly.signedIn ? qsTr("Sign out") : qsTr("Sign in"))
+                text: (feedAPI.signedIn ? qsTr("Sign out") : qsTr("Sign in"))
                 onClicked: {
-                    if (feedly.signedIn) feedly.revokeRefreshToken();
+                    if (feedAPI.signedIn) feedAPI.revokeRefreshToken();
                     else pageStack.push(Qt.resolvedUrl("SignInPage.qml"));
                 }
             }
 
             MenuItem {
                 text: qsTr("Add feed")
-                visible: feedly.signedIn
+                visible: feedAPI.signedIn
                 onClicked: pageStack.push(Qt.resolvedUrl("FeedSearchPage.qml"))
             }
 
             MenuItem {
                 text: qsTr("Refresh feeds")
-                visible: feedly.signedIn
-                onClicked: feedly.getSubscriptions()
+                visible: feedAPI.signedIn
+                onClicked: feedAPI.getSubscriptions()
             }
         }
 
         ViewPlaceholder {
             enabled: (feedsListView.count == 0)
-            text: (feedly.signedIn ? qsTr("Feeds list not available") : qsTr("Please sign in"))
+            text: (feedAPI.signedIn ? qsTr("Feeds list not available") : qsTr("Please sign in"))
         }
 
         VerticalScrollDecorator {

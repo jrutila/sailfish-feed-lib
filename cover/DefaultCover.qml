@@ -48,7 +48,7 @@ CoverBackground {
                 horizontalAlignment: Text.AlignRight
                 wrapMode: Text.NoWrap
                 font.pixelSize: Theme.fontSizeExtraLarge
-                text: feedly.totalUnread
+                text: feedAPI.totalUnread
             }
 
             Label {
@@ -82,7 +82,7 @@ CoverBackground {
                 horizontalAlignment: Text.AlignRight
                 wrapMode: Text.NoWrap
                 font.pixelSize: Theme.fontSizeExtraLarge
-                text: feedly.uniqueFeeds
+                text: feedAPI.uniqueFeeds
             }
 
             Label {
@@ -136,14 +136,14 @@ CoverBackground {
                 horizontalAlignment: Text.AlignRight
                 wrapMode: Text.NoWrap
                 font.pixelSize: Theme.fontSizeExtraLarge
-                text: ((typeof pageStack.currentPage.streamId !== "undefined") ? (feedly.streamIsTag(pageStack.currentPage.streamId) ? feedly.articlesListModel.count : pageStack.currentPage.unreadCount) : "0") // (typeof pageStack.currentPage.unreadCount !== "undefined") ? pageStack.currentPage.unreadCount : "0"
+                text: ((typeof pageStack.currentPage.streamId !== "undefined") ? (feedAPI.streamIsTag(pageStack.currentPage.streamId) ? feedAPI.articlesListModel.count : pageStack.currentPage.unreadCount) : "0") // (typeof pageStack.currentPage.unreadCount !== "undefined") ? pageStack.currentPage.unreadCount : "0"
             }
 
             Label {
                 anchors.verticalCenter: parent.verticalCenter
 
                 font.pixelSize: Theme.fontSizeTiny
-                text: ((typeof pageStack.currentPage.streamId !== "undefined") && feedly.streamIsTag(pageStack.currentPage.streamId)) ? qsTr("Saved\narticles") : qsTr("Unread\narticles")
+                text: ((typeof pageStack.currentPage.streamId !== "undefined") && feedAPI.streamIsTag(pageStack.currentPage.streamId)) ? qsTr("Saved\narticles") : qsTr("Unread\narticles")
             }
         }
     }
@@ -162,7 +162,7 @@ CoverBackground {
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
             maximumLineCount: 8
             elide: Text.ElideRight
-            text: (feedly.currentEntry !== null) ? "\"" + feedly.currentEntry.title + "\"" : qsTr("No article selected")
+            text: (feedAPI.currentEntry !== null) ? "\"" + feedAPI.currentEntry.title + "\"" : qsTr("No article selected")
         }
 
         Label {
@@ -170,7 +170,7 @@ CoverBackground {
             wrapMode: Text.NoWrap
             truncationMode: TruncationMode.Fade
             color: Theme.highlightColor
-            text: (feedly.currentEntry !== null) ? feedly.currentEntry.streamTitle : ""
+            text: (feedAPI.currentEntry !== null) ? feedAPI.currentEntry.streamTitle : ""
         }
     }
 
@@ -219,7 +219,7 @@ CoverBackground {
 
         CoverAction {
             iconSource: "image://theme/icon-cover-refresh"
-            onTriggered: feedly.getSubscriptions();
+            onTriggered: feedAPI.getSubscriptions();
         }
     }
 
@@ -233,14 +233,14 @@ CoverBackground {
 
         CoverAction {
             iconSource: "image://theme/icon-cover-refresh"
-            onTriggered: feedly.getStreamContent(pageStack.currentPage.streamId)
+            onTriggered: feedAPI.getStreamContent(pageStack.currentPage.streamId)
         }
     }
 
     states: [
         State {
             name: "busy"
-            when: feedly.busy
+            when: feedAPI.busy
 
             PropertyChanges {
                 target: allFeedsInfoContainer
@@ -280,7 +280,7 @@ CoverBackground {
 
         State {
             name: "notSignedIn"
-            when: (!feedly.signedIn && !feedly.busy)
+            when: (!feedAPI.signedIn && !feedAPI.busy)
 
             PropertyChanges {
                 target: allFeedsInfoContainer

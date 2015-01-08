@@ -237,6 +237,13 @@ Page {
             }
         }
 
+        onAtYEndChanged: {
+            if (atYEnd)
+            {
+                feedAPI.getStreamContent(streamId, true)
+            }
+        }
+
         PullDownMenu {
             MenuItem {
                 visible: (!feedAPI.streamIsTag(page.streamId) && (articlesListView.count > 0))
@@ -252,12 +259,6 @@ Page {
 
         PushUpMenu {
             visible: (articlesListView.count > 0)
-
-            MenuItem {
-                visible: (feedAPI.continuation !== "")
-                text: qsTr("More articles")
-                onClicked: feedAPI.getStreamContent(streamId, true)
-            }
 
             MenuItem {
                 visible: !feedAPI.streamIsTag(page.streamId)

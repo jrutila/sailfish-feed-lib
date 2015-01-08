@@ -25,8 +25,12 @@ Page {
         property Item contextMenu
 
         anchors.fill: parent
-        visible: !feedAPI.busy
         spacing: Theme.paddingMedium
+
+        BusyIndicator {
+            anchors.centerIn: parent
+            running: feedAPI.busy
+        }
 
         header: PageHeader {
             title: page.title
@@ -269,7 +273,7 @@ Page {
         }
 
         ViewPlaceholder {
-            enabled: (articlesListView.count == 0)
+            enabled: (!feedAPI.busy && articlesListView.count == 0)
             text: qsTr("No unread articles in this feed")
         }
 

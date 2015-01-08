@@ -23,7 +23,11 @@ Page {
         property Item contextMenu
 
         anchors.fill: parent
-        visible: !feedAPI.busy
+
+        BusyIndicator {
+            anchors.centerIn: parent
+            running: feedAPI.busy && !pageStack.busy
+        }
 
         header: PageHeader {
             title: qsTr("Your feeds")
@@ -118,7 +122,7 @@ Page {
         }
 
         ViewPlaceholder {
-            enabled: (feedsListView.count == 0)
+            enabled: (!feedAPI.busy && feedsListView.count == 0)
             text: (feedAPI.signedIn ? qsTr("Feeds list not available") : qsTr("Please sign in"))
         }
 

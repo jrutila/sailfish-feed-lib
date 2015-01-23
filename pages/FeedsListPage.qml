@@ -54,11 +54,13 @@ Page {
                 property var feedCategories
 
                 MenuItem {
+                    enabled: false
                     text: qsTr("Manage feed")
                     onClicked: pageStack.push(Qt.resolvedUrl("../dialogs/UpdateFeedDialog.qml"), { "feedId": feedId, "title": feedTitle, "imgUrl": feedImgUrl, "lang": feedLang, "categories": feedCategories })
                 }
 
                 MenuItem {
+                    enabled: false
                     text: qsTr("Unsubscribe")
                     onClicked: visualParent.unsubscribe();
                 }
@@ -97,7 +99,7 @@ Page {
         PullDownMenu {
             MenuItem {
                 text: qsTr("About")
-                onClicked: pageStack.push(Qt.resolvedUrl("AboutPage.qml"))
+                onClicked: pageStack.push(Qt.resolvedUrl("../../provider/AboutPage.qml"))
             }
 
             MenuItem {
@@ -110,6 +112,7 @@ Page {
 
             MenuItem {
                 text: qsTr("Add feed")
+                enabled: false
                 visible: feedAPI.signedIn
                 onClicked: pageStack.push(Qt.resolvedUrl("FeedSearchPage.qml"))
             }

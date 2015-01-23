@@ -78,9 +78,19 @@ Page {
 
         PageHeader {
             id: header
-
             title: page.title
+            property bool showTitle: false
+
+            MouseArea {
+                anchors.fill: parent
+
+                onClicked:
+                {
+                    parent.showTitle = !parent.showTitle;
+                }
+            }
         }
+
 
         Column {
             id: articleContainer
@@ -89,6 +99,18 @@ Page {
             width: parent.width
             clip: true
             spacing: Theme.paddingSmall
+
+            Label {
+                id: titlebox
+                width: parent.width - (2 * Theme.paddingLarge)
+                x: Theme.paddingLarge
+                text: page.title
+                visible: header.showTitle
+
+                wrapMode: Text.WordWrap
+                color: Theme.highlightColor
+            }
+
 
             SlideshowView {
                 id: articleGalleryView
